@@ -1,10 +1,23 @@
 const express = require('express');
+const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose();
+const fs = require('fs');
 
 const app = express();
 const port = 3000;
 
 const db = new sqlite3.Database('proyectos.db');
+const uploadFolder = './uploads';
+
+// Verifica si la carpeta no existe y la crea
+if (!fs.existsSync(uploadFolder)) {
+  fs.mkdirSync(uploadFolder);
+  console.log('Carpeta "uploads" creada exitosamente.');
+} else {
+  console.log('La carpeta "uploads" ya existe.');
+}
+
+const upload = multer({ dest: 'uploads/' }); // Define la carpeta donde se guardarán las fotos
 
 // Crear tabla si no existe
 db.run(`
@@ -44,9 +57,10 @@ app.get('/proyectos', (req, res) => {
   });
 });
 
-// Agregar un nuevo proyecto
-app.post('/proyectos', (req, res) => {
-  const { nombre, fecha, usuario, notas, estado, foto } = req.body;
+// Agregar un nuevo proyecto con foto
+app.post('/proyectos', upload.single('foto'), (req, res) => {
+  const { nombre, fecha, usuario, notas, estado } = req.body;
+  const foto = req.file ? req.file.path : null; // Obtiene la ruta del archivo subido
 
   if (!nombre || !fecha || !usuario || !estado) {
     return res.status(400).send('Se requieren nombre, fecha, usuario y estado para agregar un proyecto');
