@@ -80,10 +80,15 @@ app.post('/proyectos', upload.single('foto'), (req, res) => {
   );
 });
 
+// ... (código previo)
+
+app.use(express.urlencoded({ extended: true })); // Middleware para manejar datos de formularios
+
 // Actualizar un proyecto existente por su ID
-app.put('/proyectos/:id', (req, res) => {
+app.put('/proyectos/:id', upload.single('foto'), (req, res) => {
   const { id } = req.params;
-  const { nombre, fecha, usuario, notas, estado, foto } = req.body;
+  const { nombre, fecha, usuario, notas, estado } = req.body;
+  const foto = req.file ? req.file.path : null; // Obtiene la ruta del archivo subido
 
   if (!nombre && !fecha && !usuario && !notas && !estado && !foto) {
     return res.status(400).send('Se requiere al menos un campo para actualizar');
