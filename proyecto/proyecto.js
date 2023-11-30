@@ -2,6 +2,8 @@ const express = require('express');
 const multer = require('multer');
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
+const swaggerJSDOC = require('swagger-jsdoc');
+const swaggerUi = require('swagger-ui-express');
 
 const app = express();
 const port = 3000;
@@ -80,9 +82,8 @@ app.post('/proyectos', upload.single('foto'), (req, res) => {
   );
 });
 
-// ... (código previo)
-
-app.use(express.urlencoded({ extended: true })); // Middleware para manejar datos de formularios
+// Middleware para manejar datos de formularios
+app.use(express.urlencoded({ extended: true }));
 
 // Actualizar un proyecto existente por su ID
 app.put('/proyectos/:id', upload.single('foto'), (req, res) => {
@@ -156,6 +157,27 @@ app.delete('/proyectos/:id', (req, res) => {
     }
   });
 });
+
+// Swagger configuration
+const options = {
+  definition: {
+    openapi: '3.0.0',
+    info: {
+      title: 'API de Proyectos',
+      version: '1.0.0',
+      description: 'API para gestionar proyectos',
+    },
+  },
+  apis: ['./app.js'], // Point to the file containing your API routes
+};
+
+const swaggerSpec = swaggerJSDOC(options);
+
+const swaggerDocs = () => {
+  app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+};
+
+swaggerDocs();
 
 app.listen(port, () => {
   console.log(`Servidor en http://localhost:${port}`);
